@@ -1,9 +1,19 @@
 ## Members 
 
-Anthony Keith,
-Nate Brown,
-Ryan Bagan,
-Deon Curry.
+Anthony Keith, https://github.com/AnthonyKeith15
+
+
+Nate Brown, https://github.com/nate-brown-1
+
+
+Ryan Bagan, https://github.com/Ryanb021
+
+
+Deon Curry.https://github.com/Curryfrom3
+
+## Trello
+
+https://trello.com/b/0bfYLmuI/communal
 
 ## Communal Music
 
@@ -27,8 +37,13 @@ The MVP would be a website that finds songs using the API and stores the playlis
 
 ## Wireframe/outline
 
+
+
+<img width="1411" alt="Screenshot 2023-03-20 at 11 36 21 AM" src="https://user-images.githubusercontent.com/122304970/226435309-68bc9804-a0e6-484c-a6eb-1199dfc86243.png">
+
 <img width="1680" alt="Screenshot 2023-03-20 at 10 42 40 AM" src="https://user-images.githubusercontent.com/122304970/226423429-de60d3fb-28c1-4091-95c1-7f16f8635beb.png">
 
 [Project Spotify.pdf](https://github.com/Curryfrom3/communal-fe/files/11021359/Project.Spotify.pdf)
+
 
 
