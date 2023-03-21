@@ -5,8 +5,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const axios = require('axios');
 // const Playlist = require('./models/playlist.js');
 const verifyUser = require('./auth');
+const request = require('request');
 
 // start mongoose and verify it's alive and connected
 const db = mongoose.connection;
@@ -38,3 +40,34 @@ app.get('/test', (req, res) => {
 
 // start listening
 app.listen(PORT, () => console.log(`Listening on ${PORT}`));
+
+const clientId = process.env.SPOTIFY_API_CLIENT_ID;
+const clientSecret = process.env.SPOTIFY_API_CLIENT_SECRET;
+
+var client_id = clientId;
+var client_secret = clientSecret;
+
+var authOptions = {
+  url: 'https://accounts.spotify.com/api/token',
+  headers: {
+    'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64'))
+  },
+  form: {
+    grant_type: 'client_credentials'
+  },
+  json: true
+};
+
+async function getSpotifyToken() {
+
+request.post(authOptions, function(error, response, body) {
+  if (!error && response.statusCode === 200) {
+    // var token = body.access_token;
+    var token = body;
+    console.log(token);
+  }
+});
+
+}
+
+getSpotifyToken();
