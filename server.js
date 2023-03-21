@@ -9,14 +9,14 @@ const mongoose = require('mongoose');
 const verifyUser = require('./auth');
 
 // start mongoose and verify it's alive and connected
-// const db = mongoose.connection;
-// db.on('error', console.error.bind(console, 'connection error'));
-// db.once('open', function () {
-//   console.log('Mongoose is connected');
-// });
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error'));
+db.once('open', function () {
+  console.log('Mongoose is connected');
+});
 
 // connect mongoose to MongoDB
-// mongoose.connect(process.env.DATABASE_URL);
+mongoose.connect(process.env.DATABASE_URL);
 
 // start express server with CORS and express.json
 const app = express();
