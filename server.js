@@ -32,7 +32,7 @@ app.use(express.json());
 // use PORT from env or else log 3002 to indicate a problem
 const PORT = process.env.PORT || 3002;
 
-app.put('/playlists', getPlaylists);
+app.get('/playlists', getPlaylists);
 app.post('/playlists', createPlaylist);
 app.delete('/playlists', deletePlaylist);
 
