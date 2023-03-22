@@ -32,9 +32,11 @@ app.use(express.json());
 // use PORT from env or else log 3002 to indicate a problem
 const PORT = process.env.PORT || 3002;
 
-// app.put('/playlists', getPlaylist);
-// app.post('/playlists', postPlaylist);
-// app.delete('/playlists', deletePlaylist);
+app.put('/playlists', getPlaylists);
+app.post('/playlists', createPlaylist);
+app.delete('/playlists', deletePlaylist);
+
+// PUT requests are not well defined in the project documentation
 // app.put('playlists', putPlaylist);
 
 // test that server receives requests
@@ -116,7 +118,7 @@ class Song {
 // this function gets a user's playlists
 // it needs to get the user's email as a req parameter
 // when it returns the playlists using Playlist.find, then we can use filter() to only return that user's playlists
-async function getUserPlaylist (req, res, next) {
+async function getPlaylists (req, res, next) {
   verifyUser(req, async (err, user) => {
     if (err) {
       console.error(err);
