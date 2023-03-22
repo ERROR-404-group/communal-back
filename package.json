@@ -8,6 +8,7 @@
     "jsonwebtoken": "^9.0.0",
     "jwks-rsa": "^3.0.1",
     "mongoose": "^7.0.2",
+    "qs": "^6.11.1",
     "request": "^2.88.2"
   },
   "scripts": {

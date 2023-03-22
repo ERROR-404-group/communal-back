@@ -6,9 +6,14 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const axios = require('axios');
+const qs = require('qs');
 // const Playlist = require('./models/playlist.js');
 const verifyUser = require('./auth');
 const request = require('request');
+
+let error = {
+  message: 'It looks like I picked the wrong week to quit amphetamines.'
+}
 
 // start mongoose and verify it's alive and connected
 const db = mongoose.connection;
@@ -28,10 +33,27 @@ app.use(express.json());
 // use PORT from env or else log 3002 to indicate a problem
 const PORT = process.env.PORT || 3002;
 
-// app.put('/playlists', getPlaylist);
-// app.post('/playlists', postPlaylist);
-// app.delete('/playlists', deletePlaylist);
+// accept client requests to interact with database
+app.get('/playlists', getPlaylists);
+app.post('/playlists', createPlaylist);
+app.delete('/playlists', deletePlaylist);
+
+// PUT requests are not well defined in the project documentation
 // app.put('playlists', putPlaylist);
+
+// accept client requests to search Spotify API for songs
+// request format: http://<SERVER_URL>/search?search=$<SEARCH_STRING>
+app.get('/search', async (req, res, next) => {
+  try {
+    let search_string = req.query.search;
+    let search_results = await getSpotifyResults(search_string);
+    console.log(search_results);
+    res.send(search_results);
+  }
+  catch (error) {
+    next (error);
+  }
+});
 
 // test that server receives requests
 app.get('/test', (req, res) => {
@@ -41,98 +63,126 @@ app.get('/test', (req, res) => {
 // start listening
 app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 
-const clientId = process.env.SPOTIFY_API_CLIENT_ID;
-const clientSecret = process.env.SPOTIFY_API_CLIENT_SECRET;
+const client_id = process.env.SPOTIFY_API_CLIENT_ID;
+const client_secret = process.env.SPOTIFY_API_CLIENT_SECRET;
+const auth_token = Buffer.from(`${client_id}:${client_secret}`, 'utf-8').toString('base64');
 
+// console.log(auth_token);
 
-// code vomit from SPOTIFY API, uses client id and client secret to generate token
-// token required when sending searches to SPOTIFY API
+const getAuth = async () => {
+  try {
+    const token_url = 'https://accounts.spotify.com/api/token';
+    const data = qs.stringify({grant_type: 'client_credentials'});
 
-var client_id = clientId;
-var client_secret = clientSecret;
-
-let spotifyToken;
-
-var authOptions = {
-  url: 'https://accounts.spotify.com/api/token',
-  headers: {
-    'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64'))
-  },
-  form: {
-    grant_type: 'client_credentials'
-  },
-  json: true
-};
-
-async function getSpotifyToken() {
-  request.post(authOptions, function(error, response, body) {
-    if (!error && response.statusCode === 200) {
-      // var token = body.access_token;
-      var token = body;
-      spotifyToken = body.access_token;
-      console.log(token);
-    }
-  });
-  getSpotifyResults();
-};
-
-// ^^^ end code vomit from SPOTIFY API ^^^
-
-// placeholder location to invoke function to get the token
-getSpotifyToken();
-
-var spotifyRequestHeaders = {
-  headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer BQAXGy3nCB32ASgeCYlQAD4Rgr02lV2NiT0hIopEpCO0UrVKB6PZJKBkUimBlISs4-2BUydgoqht5NDxOncvq5IOLVma2Nb4phelCFeIgnWXws3E1Usv`
+    const response = await axios.post(token_url, data, {
+      headers: {
+        'Authorization': `Basic ${auth_token}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+    // return access token
+    // console.log(response.data.access_token);
+    return response.data.access_token;
+  } catch (error) {
+    console.log(error);
   }
 };
 
-var search_string = 'pink floyd animals';
-
 // function to search tracks using Spotify API
-// requires search string (passed from client)
+// requires search string (passed from client request)
 // search string format: text, separated by spaces is acceptable
 // requires token (generated server side)
 async function getSpotifyResults(search_string) {
-  // local variable for spotify request
-  // let search;
+
+  const access_token = await getAuth();
+
   // Spotify request URL format
-  // https://api.spotify.com/v1/search?q=<search_string>&type=track&limit=10"
+  // https://api.spotify.com/v1/search?q=<SEARCH_STRING>&type=track&limit=10"
   // Spotify get request headers
-  // {"Accept: application/json","Content-Type: application/json","Authorization: Bearer <token>"}
-  // try {
-    let search = await axios.get(`https://api.spotify.com/v1/search?q=pink floyd animals&type=track&limit=10`,
+  try {
+    // let token = getSpotifyToken();
+    
+    let search = await axios.get(`https://api.spotify.com/v1/search?q=${search_string}&type=track&limit=10`,
       {headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': `Bearer BQAXGy3nCB32ASgeCYlQAD4Rgr02lV2NiT0hIopEpCO0UrVKB6PZJKBkUimBlISs4-2BUydgoqht5NDxOncvq5IOLVma2Nb4phelCFeIgnWXws3E1Usv`
+        'Authorization': `Bearer ${access_token}`
     }});
-    console.log(search.data.tracks.items[1].name);
-    let tracks = search.data.tracks.items.map(
-      trackResult => new Track(trackResult)
+    let songResults = search.data.tracks.items.map(
+      songResult => new Song(songResult)
       );
-    console.log(tracks)
-    // return Promise.resolve(search);
-  // } catch (e) {
-  //   search = e.message;
-  //   console.log(search);
-  //   return Promise.reject(search);
-  //   next (e);
-  // }
+    console.log(songResults)
+    return songResults;
+  } catch (error) {
+    console.log(error);
+  }
 }
 
-// getSpotifyResults();
+// let req = 'pink floyd animals';
 
-let e = {
-  message: 'It looks like I picked the wrong week to quit amphetamines.'
-}
+// getSpotifyResults(req);
 
-class Track {
-  constructor(TrackObject) {
-    this.album = TrackObject.album.name,
-    this.artist = TrackObject.artists[0].name,
-    this.track = TrackObject.name
+class Song {
+  constructor(SongObject) {
+    this.title = SongObject.name,
+    this.artist = SongObject.artists.name || SongObject.artists[0].name,
+    this.album = SongObject.album.name
    }
+}
+
+// this function gets a user's playlists
+// it needs to get the user's email as a req parameter
+// when it returns the playlists using Playlist.find, then we can use filter() to only return that user's playlists
+async function getPlaylists (req, res, next) {
+  verifyUser(req, async (err, user) => {
+    if (err) {
+      console.error(err);
+      res.send('Invalid token');
+    } else {
+      try {
+        let playlistResults = await Playlist.find({});
+        let userPlaylists = playlistResults.filter(list => list.createdBy === userEmail);
+        res.status(200).send(userPlaylists);
+        console.log('User\'s playlists sent');
+      } catch (err) {
+        next(err);
+      }
+    }
+  });
+}
+
+// this function sends a newly created playlist to the database
+async function createPlaylist (req, res, next) {
+  verifyUser(req, async (err, user) => {
+    if (err) {
+      console.error(err);
+      res.send('Invalid token');
+    } else {
+      try {
+        let newPlaylist = await Playlist.create({});
+        res.status(200).send(newPlaylist);
+        console.log('Playlist added to database');
+      } catch (err) {
+        next(err);
+      }
+    }
+  });
+}
+
+// this function deletes a previously created playlist
+async function deletePlaylist (req, res, next) {
+  verifyUser(req, async (err, user) => {
+    if (err) {
+      console.error(err);
+      res.send('Invalid token');
+    } else {
+      try {
+        let id = req.params.id;
+        await Playlist.findByIdAndDelete(id);
+        res.status(200).send(id);
+      } catch (err) {
+        next(err);
+      }
+    }
+  });
 }
