@@ -98,18 +98,16 @@ async function getSpotifyResults(search_string) {
 
   // Spotify request URL format
   // https://api.spotify.com/v1/search?q=<SEARCH_STRING>&type=track&limit=10"
-  // Spotify get request headers
   try {
-    // let token = getSpotifyToken();
-    
     let search = await axios.get(`https://api.spotify.com/v1/search?q=${search_string}&type=track&limit=10`,
       {headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${access_token}`
     }});
+    console.log(search.data.tracks.items);
     let songResults = search.data.tracks.items.map(
-      songResult => new Song(songResult)
+      (songResult) => new Song(songResult)
       );
     console.log(songResults)
     return songResults;
@@ -118,13 +116,12 @@ async function getSpotifyResults(search_string) {
   }
 }
 
-// let req = 'pink floyd animals';
-
-// getSpotifyResults(req);
-
+// class to construct Song objects that can be added to array and passed to client
+// we don't want most of the data from Spotify, we only want to send simple song info
 class Song {
   constructor(SongObject) {
-    this.title = SongObject.name,
+    this.id = SongObject.id,
+    this.name = SongObject.name,
     this.artist = SongObject.artists.name || SongObject.artists[0].name,
     this.album = SongObject.album.name
    }
