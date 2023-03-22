@@ -92,10 +92,10 @@ async function getSpotifyResults(search_string) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer BQDtgmAw7hFI21eNDxn26mI9CAJsnIf464Ht7pvzG0apy5diUbckdfJ-9Ykqwn3HJDtqay_PYw0dxegUm6EJRdFKlTe4rcrRshed7VlJqj9Hqm3CrBNM`
     }});
-    let tracks = search.data.tracks.items.map(
-      trackResult => new Track(trackResult)
+    let songResults = search.data.tracks.items.map(
+      songResult => new Song(songResult)
       );
-    console.log(tracks)
+    console.log(songResults)
   } catch (error) {
     console.log(error);
   }
@@ -105,10 +105,67 @@ let animals = 'pink floyd animals';
 
 getSpotifyResults(animals);
 
-class Track {
-  constructor(TrackObject) {
-    this.album = TrackObject.album.name,
-    this.artist = TrackObject.artists[0].name,
-    this.track = TrackObject.name
+class Song {
+  constructor(SongObject) {
+    this.title = SongObject.name,
+    this.artist = SongObject.artists.name || SongObject.artists[0].name,
+    this.album = SongObject.album.name
    }
+}
+
+// this function gets a user's playlists
+// it needs to get the user's email as a req parameter
+// when it returns the playlists using Playlist.find, then we can use filter() to only return that user's playlists
+async function getUserPlaylist (req, res, next) {
+  verifyUser(req, async (err, user) => {
+    if (err) {
+      console.error(err);
+      res.send('Invalid token');
+    } else {
+      try {
+        let playlistResults = await Playlist.find({});
+        let userPlaylists = playlistResults.filter(list => list.createdBy === userEmail);
+        res.status(200).send(userPlaylists);
+        console.log('User\'s playlists sent');
+      } catch (err) {
+        next(err);
+      }
+    }
+  });
+}
+
+// this function sends a newly created playlist to the database
+async function createPlaylist (req, res, next) {
+  verifyUser(req, async (err, user) => {
+    if (err) {
+      console.error(err);
+      res.send('Invalid token');
+    } else {
+      try {
+        let newPlaylist = await Playlist.create({});
+        res.status(200).send(newPlaylist);
+        console.log('Playlist added');
+      } catch (err) {
+        next(err);
+      }
+    }
+  });
+}
+
+// this function deletes a previously created playlist
+async function deletePlaylist (req, res, next) {
+  verifyUser(req, async (err, user) => {
+    if (err) {
+      console.error(err);
+      res.send("invalid token");
+    } else {
+      try {
+        let id = req.params.id;
+        await Playlist.findByIdAndDelete(id);
+        res.status(200).send(id);
+      } catch (err) {
+        next(err);
+      }
+    }
+  });
 }
