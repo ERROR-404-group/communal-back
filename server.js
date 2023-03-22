@@ -9,7 +9,6 @@ const axios = require('axios');
 const qs = require('qs');
 // const Playlist = require('./models/playlist.js');
 const verifyUser = require('./auth');
-const request = require('request');
 
 let error = {
   message: 'It looks like I picked the wrong week to quit amphetamines.'
@@ -42,10 +41,11 @@ app.delete('/playlists', deletePlaylist);
 // app.put('playlists', putPlaylist);
 
 // accept client requests to search Spotify API for songs
-// request format: http://<SERVER_URL>/search?search=$<SEARCH_STRING>
+// request format: http://<SERVER_URL>/search?q=$<SEARCH_STRING>
 app.get('/search', async (req, res, next) => {
   try {
-    let search_string = req.query.search;
+    let search_string = req.query.q;
+    console.log(search_string);
     let search_results = await getSpotifyResults(search_string);
     console.log(search_results);
     res.send(search_results);
