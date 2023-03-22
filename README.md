@@ -47,3 +47,8 @@ The MVP would be a website that finds songs using the API and stores the playlis
 
 
 
+### Acknowledgements
+
+Special thanks to Ritvik Biswas for his documentation on how to use the Spotify API with Axios
+[https://ritvikbiswas.medium.com/connecting-to-the-spotify-api-using-node-js-and-axios-client-credentials-flow-c769e2bee818]
+
