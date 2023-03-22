@@ -6,6 +6,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const axios = require('axios');
+const qs = require('qs');
 // const Playlist = require('./models/playlist.js');
 const verifyUser = require('./auth');
 const request = require('request');
@@ -32,12 +33,27 @@ app.use(express.json());
 // use PORT from env or else log 3002 to indicate a problem
 const PORT = process.env.PORT || 3002;
 
+// accept client requests to interact with database
 app.get('/playlists', getPlaylists);
 app.post('/playlists', createPlaylist);
 app.delete('/playlists', deletePlaylist);
 
 // PUT requests are not well defined in the project documentation
 // app.put('playlists', putPlaylist);
+
+// accept client requests to search Spotify API for songs
+// request format: http://<SERVER_URL>/search?search=$<SEARCH_STRING>
+app.get('/search', async (req, res, next) => {
+  try {
+    let search_string = req.query.search;
+    let search_results = await getSpotifyResults(search_string);
+    console.log(search_results);
+    res.send(search_results);
+  }
+  catch (error) {
+    next (error);
+  }
+});
 
 // test that server receives requests
 app.get('/test', (req, res) => {
@@ -47,65 +63,64 @@ app.get('/test', (req, res) => {
 // start listening
 app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 
-// code vomit from SPOTIFY API, uses client id and client secret to generate token
-// token required when sending searches to SPOTIFY API
+const client_id = process.env.SPOTIFY_API_CLIENT_ID;
+const client_secret = process.env.SPOTIFY_API_CLIENT_SECRET;
+const auth_token = Buffer.from(`${client_id}:${client_secret}`, 'utf-8').toString('base64');
 
-var client_id = process.env.SPOTIFY_API_CLIENT_ID;
-var client_secret = process.env.SPOTIFY_API_CLIENT_SECRET;
+// console.log(auth_token);
 
-var authOptions = {
-  url: 'https://accounts.spotify.com/api/token',
-  headers: {
-    'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64'))
-  },
-  form: {
-    grant_type: 'client_credentials'
-  },
-  json: true
+const getAuth = async () => {
+  try {
+    const token_url = 'https://accounts.spotify.com/api/token';
+    const data = qs.stringify({grant_type: 'client_credentials'});
+
+    const response = await axios.post(token_url, data, {
+      headers: {
+        'Authorization': `Basic ${auth_token}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+    // return access token
+    // console.log(response.data.access_token);
+    return response.data.access_token;
+  } catch (error) {
+    console.log(error);
+  }
 };
-
-function getSpotifyToken() {
-  request.post(authOptions, function(error, response, body) {
-    if (!error && response.statusCode === 200) {
-      var token = body.access_token;
-      console.log(token);
-      return token;
-    }
-  });
-};
-
-// ^^^ end code vomit from SPOTIFY API ^^^
 
 // function to search tracks using Spotify API
-// requires search string (passed from client)
+// requires search string (passed from client request)
 // search string format: text, separated by spaces is acceptable
 // requires token (generated server side)
 async function getSpotifyResults(search_string) {
+
+  const access_token = await getAuth();
+
   // Spotify request URL format
-  // https://api.spotify.com/v1/search?q=<search_string>&type=track&limit=10"
+  // https://api.spotify.com/v1/search?q=<SEARCH_STRING>&type=track&limit=10"
   // Spotify get request headers
-  // {"Accept: application/json","Content-Type: application/json","Authorization: Bearer <token>"}
   try {
-    let token = getSpotifyToken();
+    // let token = getSpotifyToken();
     
     let search = await axios.get(`https://api.spotify.com/v1/search?q=${search_string}&type=track&limit=10`,
       {headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': `Bearer BQDtgmAw7hFI21eNDxn26mI9CAJsnIf464Ht7pvzG0apy5diUbckdfJ-9Ykqwn3HJDtqay_PYw0dxegUm6EJRdFKlTe4rcrRshed7VlJqj9Hqm3CrBNM`
+        'Authorization': `Bearer ${access_token}`
     }});
     let songResults = search.data.tracks.items.map(
       songResult => new Song(songResult)
       );
     console.log(songResults)
+    return songResults;
   } catch (error) {
     console.log(error);
   }
 }
 
-let animals = 'pink floyd animals';
+// let req = 'pink floyd animals';
 
-getSpotifyResults(animals);
+// getSpotifyResults(req);
 
 class Song {
   constructor(SongObject) {
@@ -146,7 +161,7 @@ async function createPlaylist (req, res, next) {
       try {
         let newPlaylist = await Playlist.create({});
         res.status(200).send(newPlaylist);
-        console.log('Playlist added');
+        console.log('Playlist added to database');
       } catch (err) {
         next(err);
       }
@@ -159,7 +174,7 @@ async function deletePlaylist (req, res, next) {
   verifyUser(req, async (err, user) => {
     if (err) {
       console.error(err);
-      res.send("invalid token");
+      res.send('Invalid token');
     } else {
       try {
         let id = req.params.id;
