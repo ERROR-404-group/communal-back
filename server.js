@@ -115,10 +115,6 @@ async function getSpotifyResults(search_string) {
   }
 }
 
-// let req = 'pink floyd animals';
-
-// getSpotifyResults(req);
-
 class Song {
   constructor(SongObject) {
     this.title = SongObject.name,
@@ -131,11 +127,11 @@ class Song {
 // it needs to get the user's email as a req parameter
 // when it returns the playlists using Playlist.find, then we can use filter() to only return that user's playlists
 async function getPlaylists (req, res, next) {
-  // verifyUser(req, async (err, user) => {
-    // if (err) {
-    //   console.error(err);
-    //   res.send('Invalid token cause of line 137');
-    // } else {
+  verifyUser(req, async (err, user) => {
+    if (err) {
+      console.error(err);
+      res.send('Invalid token');
+    } else {
       try {
         let playlistResults = await Playlist.find({});
         // let userPlaylists = playlistResults.filter(list => list.createdBy === userEmail);
@@ -145,9 +141,9 @@ async function getPlaylists (req, res, next) {
         next(err);
       }
     }
-  // }
-//   );
-// }
+  }
+  );
+}
 
 // this function sends a newly created playlist to the database
 async function createPlaylist (req, res, next) {
