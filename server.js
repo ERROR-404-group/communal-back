@@ -205,6 +205,7 @@ async function changePlaylistName (req, res, next) {
           new: true,
           overwrite: true
         });
+        console.log(nameChange);
         res.status(200).send(`playlist ${id} renamed`);
       } catch (err) {
         next(err);
