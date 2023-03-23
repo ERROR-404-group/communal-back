@@ -45,9 +45,7 @@ app.delete('/playlists', deletePlaylist);
 app.get('/search', async (req, res, next) => {
   try {
     let search_string = req.query.q;
-    console.log(search_string);
     let search_results = await getSpotifyResults(search_string);
-    console.log(search_results);
     res.send(search_results);
   }
   catch (error) {
@@ -111,7 +109,6 @@ async function getSpotifyResults(search_string) {
     let songResults = search.data.tracks.items.map(
       songResult => new Song(songResult)
       );
-    console.log(songResults)
     return songResults;
   } catch (error) {
     console.log(error);
@@ -137,7 +134,7 @@ async function getPlaylists (req, res, next) {
   verifyUser(req, async (err, user) => {
     if (err) {
       console.error(err);
-      res.send('Invalid token');
+      res.send('Invalid token cause of line 137');
     } else {
       try {
         let playlistResults = await Playlist.find({});
@@ -159,8 +156,9 @@ async function createPlaylist (req, res, next) {
       res.send('Invalid token');
     } else {
       try {
-        let newPlaylist = await Playlist.create({});
-        res.status(200).send(newPlaylist);
+        // let newPlaylist = await Playlist.create({});
+        console.log(req.body);
+        res.status(200).send("newPlaylist caught");
         console.log('Playlist added to database');
       } catch (err) {
         next(err);
@@ -186,3 +184,5 @@ async function deletePlaylist (req, res, next) {
     }
   });
 }
+
+// this function sends a update to the database when the playlist is updated
