@@ -149,14 +149,16 @@ async function getPlaylists (req, res, next) {
 
 // this function sends a newly created playlist to the database
 async function createPlaylist (req, res, next) {
+  let list = req.body;
+  console.log(list);
   verifyUser(req, async (err, user) => {
     if (err) {
       console.error(err);
       res.send('Invalid token');
     } else {
       try {
-        // let newPlaylist = await Playlist.create({});
-        console.log(req.body);
+        let newPlaylist = await Playlist.create(req.body);
+        console.log(newPlaylist);
         res.status(200).send("newPlaylist caught");
         console.log('Playlist added to database');
       } catch (err) {
@@ -168,15 +170,17 @@ async function createPlaylist (req, res, next) {
 
 // this function deletes a previously created playlist
 async function deletePlaylist (req, res, next) {
+  let id = req.headers.data;
+  console.log(id);
   verifyUser(req, async (err, user) => {
     if (err) {
       console.error(err);
       res.send('Invalid token');
     } else {
       try {
-        let id = req.params.id;
+        // let id = req.params.id;
         await Playlist.findByIdAndDelete(id);
-        res.status(200).send(id);
+        res.status(200).send(`playlist ${id} deleted`);
       } catch (err) {
         next(err);
       }

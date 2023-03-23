@@ -4,8 +4,8 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const playlistSchema = new Schema({
-  name: {type: String, required: true},
-  createdBy: {type: String, required: true},
+  createdBy: {type: String, required: false},
+  name: {type: String, required: false},
   songs: [
     {
       title: {type: String, required: false},
