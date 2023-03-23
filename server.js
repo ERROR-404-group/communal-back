@@ -127,6 +127,8 @@ class Song {
 // it needs to get the user's email as a req parameter
 // when it returns the playlists using Playlist.find, then we can use filter() to only return that user's playlists
 async function getPlaylists (req, res, next) {
+  let userEmail = req.headers.from;
+  console.log(userEmail);
   verifyUser(req, async (err, user) => {
     if (err) {
       console.error(err);
@@ -134,8 +136,8 @@ async function getPlaylists (req, res, next) {
     } else {
       try {
         let playlistResults = await Playlist.find({});
-        // let userPlaylists = playlistResults.filter(list => list.createdBy === userEmail);
-        res.status(200).send(playlistResults);
+        let userPlaylists = playlistResults.filter(list => list.createdBy === userEmail);
+        res.status(200).send(userPlaylists);
         console.log('User\'s playlists sent');
       } catch (err) {
         next(err);

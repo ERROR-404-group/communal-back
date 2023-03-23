@@ -8,8 +8,7 @@ const playlistSchema = new Schema({
   createdBy: {type: String, required: true},
   songs: [
     {
-      id: {type: String, required: false},
-      name: {type: String, required: false},
+      title: {type: String, required: false},
       artist: {type: String, required: false},
       album: {type: String, required: false}
     }
