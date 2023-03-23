@@ -9,6 +9,7 @@ const axios = require('axios');
 const qs = require('qs');
 const Playlist = require('./models/playlist.js');
 const verifyUser = require('./auth');
+const { verify } = require('jsonwebtoken');
 
 let error = {
   message: 'It looks like I picked the wrong week to quit amphetamines.'
@@ -36,6 +37,7 @@ const PORT = process.env.PORT || 3002;
 app.get('/playlists', getPlaylists);
 app.post('/playlists', createPlaylist);
 app.delete('/playlists', deletePlaylist);
+app.put('/rename', changePlaylistName);
 
 // PUT requests are not well defined in the project documentation
 // app.put('playlists', putPlaylist);
@@ -178,7 +180,6 @@ async function deletePlaylist (req, res, next) {
       res.send('Invalid token');
     } else {
       try {
-        // let id = req.params.id;
         await Playlist.findByIdAndDelete(id);
         res.status(200).send(`playlist ${id} deleted`);
       } catch (err) {
@@ -188,4 +189,26 @@ async function deletePlaylist (req, res, next) {
   });
 }
 
-// this function sends a update to the database when the playlist is updated
+// this function renames a playlist
+async function changePlaylistName (req, res, next) {
+  let id = req.headers.data;
+  console.log(id);
+  let renamedPlaylist = req.body;
+  console.log(renamedPlaylist);
+  verifyUser(req, async (err, user) => {
+    if (err) {
+      console.error(err);
+      res.send('Invalid token');
+    } else {
+      try {
+        let nameChange = await Playlist.findByIdAndUpdate(id, renamedPlaylist, {
+          new: true,
+          overwrite: true
+        });
+        res.status(200).send(`playlist ${id} renamed`);
+      } catch (err) {
+        next(err);
+      }
+    }
+  });
+}
