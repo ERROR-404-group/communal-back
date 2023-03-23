@@ -7,7 +7,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const axios = require('axios');
 const qs = require('qs');
-// const Playlist = require('./models/playlist.js');
+const Playlist = require('./models/playlist.js');
 const verifyUser = require('./auth');
 
 let error = {
@@ -16,7 +16,7 @@ let error = {
 
 // start mongoose and verify it's alive and connected
 const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error'));
+db.on('error', console.error.bind(console, error.message));
 db.once('open', function () {
   console.log('Mongoose is connected');
 });
@@ -131,22 +131,23 @@ class Song {
 // it needs to get the user's email as a req parameter
 // when it returns the playlists using Playlist.find, then we can use filter() to only return that user's playlists
 async function getPlaylists (req, res, next) {
-  verifyUser(req, async (err, user) => {
-    if (err) {
-      console.error(err);
-      res.send('Invalid token cause of line 137');
-    } else {
+  // verifyUser(req, async (err, user) => {
+    // if (err) {
+    //   console.error(err);
+    //   res.send('Invalid token cause of line 137');
+    // } else {
       try {
         let playlistResults = await Playlist.find({});
-        let userPlaylists = playlistResults.filter(list => list.createdBy === userEmail);
-        res.status(200).send(userPlaylists);
+        // let userPlaylists = playlistResults.filter(list => list.createdBy === userEmail);
+        res.status(200).send(playlistResults);
         console.log('User\'s playlists sent');
       } catch (err) {
         next(err);
       }
     }
-  });
-}
+  // }
+//   );
+// }
 
 // this function sends a newly created playlist to the database
 async function createPlaylist (req, res, next) {
