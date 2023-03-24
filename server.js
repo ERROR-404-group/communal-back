@@ -130,7 +130,6 @@ class Song {
 // when it returns the playlists using Playlist.find, then we can use filter() to only return that user's playlists
 async function getPlaylists (req, res, next) {
   let userEmail = req.headers.from;
-  // console.log(userEmail);
   verifyUser(req, async (err, user) => {
     if (err) {
       console.error(err);
@@ -151,8 +150,6 @@ async function getPlaylists (req, res, next) {
 
 // this function sends a newly created playlist to the database
 async function createPlaylist (req, res, next) {
-  let list = req.body;
-  console.log(list);
   verifyUser(req, async (err, user) => {
     if (err) {
       console.error(err);
@@ -173,7 +170,6 @@ async function createPlaylist (req, res, next) {
 // this function deletes a previously created playlist
 async function deletePlaylist (req, res, next) {
   let id = req.headers.data;
-  console.log(id);
   verifyUser(req, async (err, user) => {
     if (err) {
       console.error(err);
@@ -192,9 +188,7 @@ async function deletePlaylist (req, res, next) {
 // this function updates a playlist
 async function updatePlaylist (req, res, next) {
   let id = req.headers.data;
-  console.log(id);
   let updatedPlaylist = req.body;
-  console.log(updatedPlaylist);
   verifyUser(req, async (err, user) => {
     if (err) {
       console.error(err);
