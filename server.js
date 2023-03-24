@@ -37,7 +37,7 @@ const PORT = process.env.PORT || 3002;
 app.get('/playlists', getPlaylists);
 app.post('/playlists', createPlaylist);
 app.delete('/playlists', deletePlaylist);
-app.put('/rename', changePlaylistName);
+app.put('/playlists', updatePlaylist);
 
 // PUT requests are not well defined in the project documentation
 // app.put('playlists', putPlaylist);
@@ -130,7 +130,7 @@ class Song {
 // when it returns the playlists using Playlist.find, then we can use filter() to only return that user's playlists
 async function getPlaylists (req, res, next) {
   let userEmail = req.headers.from;
-  console.log(userEmail);
+  // console.log(userEmail);
   verifyUser(req, async (err, user) => {
     if (err) {
       console.error(err);
@@ -140,7 +140,7 @@ async function getPlaylists (req, res, next) {
         let playlistResults = await Playlist.find({});
         let userPlaylists = playlistResults.filter(list => list.createdBy === userEmail);
         res.status(200).send(userPlaylists);
-        console.log('User\'s playlists sent');
+        // console.log('User\'s playlists sent');
       } catch (err) {
         next(err);
       }
@@ -189,27 +189,28 @@ async function deletePlaylist (req, res, next) {
   });
 }
 
-// this function renames a playlist
-async function changePlaylistName (req, res, next) {
+// this function updates a playlist
+async function updatePlaylist (req, res, next) {
   let id = req.headers.data;
   console.log(id);
-  let renamedPlaylist = req.body;
-  console.log(renamedPlaylist);
+  let updatedPlaylist = req.body;
+  console.log(updatedPlaylist);
   verifyUser(req, async (err, user) => {
     if (err) {
       console.error(err);
       res.send('Invalid token');
     } else {
       try {
-        let nameChange = await Playlist.findByIdAndUpdate(id, renamedPlaylist, {
+        let playlistChange = await Playlist.findByIdAndUpdate(id, updatedPlaylist, {
           new: true,
           overwrite: true
         });
-        console.log(nameChange);
-        res.status(200).send(`playlist ${id} renamed`);
+        console.log(playlistChange);
+        res.status(200).send(`playlist ${id} updated`);
       } catch (err) {
         next(err);
       }
     }
   });
 }
+
